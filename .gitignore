@@ -1,0 +1,6 @@
+data01/geth/LOCK
+data02/geth/LOCK
+data01/geth/transactions.rlp
+data02/geth/transactions.rlp
+data01/history
+data02/history
