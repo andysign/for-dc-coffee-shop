@@ -5,12 +5,14 @@ contract Coffeeshop {
 
 	string internal name = "Bob's Coffees";
 	address public owner;
-	uint256 internal itemOnePrice = 2 ether; // Americano
-	uint256 internal itemTwoPrice = 3 ether; // Latte
-	uint256 internal itemThreePrice = 5 ether; // Cappuccino
+	enum ItemsList {
+		Americano, Latte, Cappuccino
+	}
+	uint256[] public itemPrices = new uint[](3);
+	string[] public itemNames = new string[](3);
 
-	event SoldAmericano(address indexed buyerAddress, address indexed shopOwnerAddress);
-	event RestGiven(uint256 indexed amountInWei, address indexed receiverAddress);
+	event SoldItem(string item, address indexed buyerAddress, address indexed shopOwnerAddress);
+	event RestGiven(uint256 indexed weiAmount, address indexed receiverAddress);
 
 	modifier onlyOwner() { // Modifier for ownable functions
 		require(msg.sender == owner);
@@ -19,19 +21,32 @@ contract Coffeeshop {
 
 	constructor () public {
 		owner = msg.sender; // constructor set owner
+		itemPrices[uint8(ItemsList.Americano)] = 2 ether;
+		itemPrices[uint8(ItemsList.Latte)]     = 3 ether;
+		itemPrices[uint8(ItemsList.Cappuccino)]= 5 ether;
+		itemNames[uint8(ItemsList.Americano)] = "Americano";
+		itemNames[uint8(ItemsList.Latte)]     = "Latte";
+		itemNames[uint8(ItemsList.Cappuccino)]= "Cappuccino";
 	}
 
-	function buyAmericano () payable public {
-		if (msg.value < itemOnePrice) { // Check underpayment
+	function buyItem(uint8 _i) internal { // Buy item 0..2
+		uint8 i = _i; // Index
+		if (msg.value < itemPrices[i]) { // Check underpayment
 			revert("Not enoguth money to buy the desired item!");
 		} else {
-			emit SoldAmericano( msg.sender, owner );
-			if (msg.value > itemOnePrice) { // Check overpayment
-				msg.sender.transfer(msg.value - itemOnePrice); // Send rest
-				emit RestGiven(msg.value - itemOnePrice, msg.sender);
+			emit SoldItem( itemNames[i], msg.sender, owner );
+			if (msg.value > itemPrices[i]) { // Check overpayment
+				msg.sender.transfer(msg.value - itemPrices[i]); // Send rest
+				emit RestGiven(msg.value - itemPrices[i], msg.sender);
 			}
 		}
 	}
+
+	function buyAmericano() payable public { buyItem(uint8(ItemsList.Americano)); }
+
+	function buyLatte() payable public { buyItem(uint8(ItemsList.Latte)); }
+
+	function buyCappuccino() payable public { buyItem(uint8(ItemsList.Cappuccino)); }
 
 	function () external payable {
 		buyAmericano(); // By default assume user wants Americano
