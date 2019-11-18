@@ -45,3 +45,22 @@ One can simply run a simple http server to serve the index.html file with:
 `python3 -m http.server`
 
 ---
+
+## Blockchain Coffee Shop: Points of Discussion
+
+Points for discussion:
+
+> * **Consider what you could do to ensure that Charlie’s Coffees, who happen to have a node on the network, can’t see how many Americanos Bob’s Coffees sell in a day?**
+
+> * **What would you do if you wanted to allow Charlie’s Coffees to be able to pay Bob’s Coffees to reveal some of their pricing or sales information from time totime?**
+
+First, in order to prevent Charlie from his intention see how many Americanos Bob’s Coffees sell in a day, in the coffee system design one can:
+
+1. Encrypt the name of each item to confuse the person analyzing the chain;
+2. Create notes with full backing in Fiat / Crypto where the backing val is encrypted and distribute those notes to every customer who wants Bob's coffees and possibly include zero notes;
+3. Use crypho thumblers;
+4. Use the Aztec Protocol or a similar ZeroKnoledgeProtocol.
+
+Last but not least, to allow Charlie’s Coffees to be able to pay Bob’s Coffees to reveal some of their pricing or sales info one can use a system where the shop owner creates an index variable that star at zero that rep all the items he sold then with homomorphic encryption allows for the encrypted value of index to be incremented with an encrypted amount representing how many coffees someone bought in one transaction for example then sell the decryption key.
+
+---
