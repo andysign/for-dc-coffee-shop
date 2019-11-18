@@ -34,4 +34,14 @@ Assuming that you have all the nodekey files in place and the static-nodes json 
 
 `./start-geth02.sh`
 
+Note that one can clear the chain information both for node one and node just by typing `./reset-geth01.sh` and then then by typing `./reset-geth02.sh`.
+
+---
+
+## Blockchain Coffee Shop: Running The User Interface
+
+One can simply run a simple http server to serve the index.html file with:
+
+`python3 -m http.server`
+
 ---
