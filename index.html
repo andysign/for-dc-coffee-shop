@@ -50,9 +50,9 @@
 	}
 	#basics td {
 		color: #808080;
-		line-height: 1.4;
-		padding-top: 16px;
-		padding-bottom: 16px;
+		line-height: 1.1;
+		padding-top: 7px;
+		padding-bottom: 7px;
 		padding-right: 10px;
 		border-bottom: 1px solid;
 	}
@@ -95,7 +95,7 @@
 		background: #f9f9f9;
 	}
 </style>
-<!--<script type="text/javascript" src="http://livejs.com/live.js"></script>-->
+<script type="text/javascript" src="http://livejs.com/live.js"></script>
 </head>
 
 <body>
@@ -105,13 +105,15 @@
 <script src="//cdn.jsdelivr.net/gh/ethereum/web3.js@1.2.0/dist/web3.min.js" type="text/javascript"></script>
 
 <script type="text/javascript">
-var provider = "http://localhost:8545";
+var provider = typeof(document.location.hash.split("!")[1])==="undefined" ? document.location.origin.replace(":8000","")+":8545" : document.location.hash.split("!")[1]; // "http://localhost:8545";
 var web3 = new Web3( new Web3.providers.HttpProvider( provider ) );
 
-// (async function () { networkid = await web3.eth.net.getId(); })()
-var provider = web3.currentProvider.host;
-// var me = web3.eth.coinbase;
-var me = "0x010394e95e108465e438fd0af870f44ca47b87df";
+var provider = web3.currentProvider.host; // localhost:8545
+var networkId = 0;
+var nodeRpcUrl = "";
+var coinbase = ""; var me = "";
+var balance = 0;
+var treasury = 0;
 // var networkid = web3.version.network;
 
 $( document ).ready(function() {
@@ -121,6 +123,26 @@ $.getJSON("./build/contracts/Coffeeshop.json", function(json) {
 	coffeeshop = new web3.eth.Contract(artifact.abi,artifact.networks[1337].address);
 	// coffeeshop=new web3.eth.Contract(artifact.abi,artifact.networks[1337].address);
 	// coffeeshop.methods.getName().call().then(console.log);
+
+	async function getGeneralBasicInfo() {
+		networkId = await web3.eth.net.getId();
+		nodeRpcUrl = provider;
+		coinbase =await web3.eth.getCoinbase(); me = coinbase;
+		balance = await web3.eth.getBalance(me);
+		treasury = await coffeeshop.methods.getBalance().call();
+		return;
+	}
+
+	// (async function () { networkid = await web3.eth.net.getId(); })();
+
+	getGeneralBasicInfo().then(function(){
+		$("#networkid").text(networkId);
+		$("#noderpcurl").text(nodeRpcUrl);
+		$("#me").text(me);
+		$("#bal").text(web3.utils.fromWei(balance));
+		$("#treasury").text(web3.utils.fromWei(treasury));
+	});
+
 	$("#americano-btn").click(function(e){
 		e.preventDefault();
 		var amount = $('[name="amount"]').val();
@@ -135,6 +157,12 @@ $.getJSON("./build/contracts/Coffeeshop.json", function(json) {
 			} ).on( 'error', console.error );
 		return false;
 	});
+
+	$("#panels").hide().show(0,function(){
+		$(this).find("#btn-hide-basics").click(function(e){ e.preventDefault(); $("#basics").hide().prev().hide(); });
+		$(this).find("#btn-hide-rest").click(function(e){ e.preventDefault(); $(".coffee").hide().prev().hide(); });
+	});
+
 });
 
 });
@@ -142,16 +170,17 @@ $.getJSON("./build/contracts/Coffeeshop.json", function(json) {
 </script>
 
 <div id="panels">
-	<small><a href="" id="btn-hide-basics">HideBasics</a>	<a href="" id="btn-hide-americano">HideRest</a></small>
+	<small><a href="" id="btn-hide-basics">HideBasics</a>	<a href="" id="btn-hide-rest">HideRest</a></small>
 </div>
 
 <h4 id="basics-title"><small>Node General Information</small></h4>
 <table id="basics">
 	<tr><th class="table-row-one">&nbsp;</th>		<th class="table-row-two">&nbsp;</th></tr>
-	<!--<tr><td><div class="highlight">network-id</div></td>		<td><div id="networkid"></div></td></tr>-->
-	<tr><td><div class="highlight">node-rpc-url</div></td>		<td><div id="provider"></div></td></tr>
+	<tr><td><div class="highlight">network-id</div></td>		<td><div id="networkid"></div></td></tr>
+	<tr><td><div class="highlight">node-rpc-url</div></td>		<td><div id="noderpcurl"></div></td></tr>
 	<tr><td><div class="highlight">coinbase</div></td>			<td><div id="me"></div></td></tr>
 	<tr><td><div class="highlight">balance</div></td>			<td><div id="bal"></div></td></tr>
+	<tr><td><div class="highlight">treasury</div></td>			<td><div id="treasury"></div></td></tr>
 </table>
 
 <h4 id="americano-title">Buy Americano</h4>
