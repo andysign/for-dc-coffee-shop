@@ -44,6 +44,12 @@ One can simply run a simple http server to serve the index.html file with:
 
 `python3 -m http.server`
 
+![img](https://i.imgur.com/UTVUC9z.png)
+
+the front end can be viewd by accessing:
+
+http://localhost:8545
+
 ---
 
 ## Blockchain Coffee Shop: Points of Discussion
