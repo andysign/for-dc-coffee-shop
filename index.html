@@ -120,9 +120,17 @@ $( document ).ready(function() {
 
 $.getJSON("./build/contracts/Coffeeshop.json", function(json) {
 	var artifact=json;
-	coffeeshop = new web3.eth.Contract(artifact.abi,artifact.networks[1337].address);
 	// coffeeshop=new web3.eth.Contract(artifact.abi,artifact.networks[1337].address);
 	// coffeeshop.methods.getName().call().then(console.log);
+	coffeeshop = new web3.eth.Contract(artifact.abi,artifact.networks[1337].address);
+
+	function renderGeneralBasicInfo() {
+		$("#networkid").text(networkId);
+		$("#noderpcurl").text(nodeRpcUrl);
+		$("#me").text(me);
+		$("#bal").text(web3.utils.fromWei(balance));
+		$("#treasury").text(web3.utils.fromWei(treasury));
+	}
 
 	async function getGeneralBasicInfo() {
 		networkId = await web3.eth.net.getId();
@@ -133,19 +141,14 @@ $.getJSON("./build/contracts/Coffeeshop.json", function(json) {
 		return;
 	}
 
-	// (async function () { networkid = await web3.eth.net.getId(); })();
-
 	getGeneralBasicInfo().then(function(){
-		$("#networkid").text(networkId);
-		$("#noderpcurl").text(nodeRpcUrl);
-		$("#me").text(me);
-		$("#bal").text(web3.utils.fromWei(balance));
-		$("#treasury").text(web3.utils.fromWei(treasury));
+		renderGeneralBasicInfo();
 	});
 
 	$("#americano-btn").click(function(e){
+
 		e.preventDefault();
-		var amount = $('[name="amount"]').val();
+		var amount = $('[name="amount-americano"]').val();
 		amount = web3.utils.toWei(amount);
 		var from = me;
 		coffeeshop.methods.buyAmericano().send({from: me, value: amount})
@@ -154,8 +157,43 @@ $.getJSON("./build/contracts/Coffeeshop.json", function(json) {
 			} )
 			.on( 'receipt', function(r){
 				console.log(r);
+				var es = r.events;
+				var e = es.SoldItem.returnValues;
+				$("#americano-events").empty();
+				$("#americano-events").prepend(
+					$("<tr>").append(
+						$("<td colspan=6>")
+					),
+					$("<tr>").append(
+						$("<td>").append("Item:<br />"+e.item),
+						$("<td>").append("Buyer:<br />"+e.buyerAddress),
+						$("<td>").append("ShopAddress:<br />"+e.shopOwnerAddress),
+						$("<td>").append("<br />"),
+						$("<td>").append("<br />"),
+						$("<td>").append("<br />")
+					)
+				)
+				if (es.hasOwnProperty("RestGiven")) {
+					var e = es.RestGiven.returnValues;
+					$("#americano-events").prepend(
+						$("<tr>").append(
+							$("<td colspan=6>")
+						),
+						$("<tr>").append(
+							$("<td>").append("ReceiverAddress:<br />"+e.receiverAddress),
+							$("<td>").append("WeiAmount:<br />"+e.weiAmount),
+							$("<td>").append("Amount:<br />"+web3.utils.fromWei(e.weiAmount)),
+							$("<td>").append("<br />"),
+							$("<td>").append("<br />"),
+							$("<td>").append("<br />")
+						)
+					)
+				}
+				getGeneralBasicInfo().then(function(){ renderGeneralBasicInfo() });
 			} ).on( 'error', console.error );
+
 		return false;
+
 	});
 
 	$("#panels").hide().show(0,function(){
@@ -186,7 +224,7 @@ $.getJSON("./build/contracts/Coffeeshop.json", function(json) {
 <h4 id="americano-title">Buy Americano</h4>
 <table id="americano" class="coffee" width="100%">
 	<tr>	<th>Amount of ETH to Send:</th>					<th>&nbsp;</th>										</tr>
-	<tr>	<td><input name="amount" value="2.00" /></td>	<td><!--<input name="val" value="1.00" />--></td>	</tr>
+	<tr>	<td><input name="amount-americano" value="2.00" /></td>	<td><!--<input name="val" value="1.00" />--></td>	</tr>
 	<tr>	<td colspan="2"><a href="#" id="americano-btn">Submit</a><small></small></td>						</tr>
 </table>
 
