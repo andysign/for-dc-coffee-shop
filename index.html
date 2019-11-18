@@ -145,6 +145,11 @@ $.getJSON("./build/contracts/Coffeeshop.json", function(json) {
 		renderGeneralBasicInfo();
 	});
 
+	$("#panels").hide().show(0,function(){
+		$(this).find("#btn-hide-basics").click(function(e){ e.preventDefault(); $("#basics").hide().prev().hide(); });
+		$(this).find("#btn-hide-rest").click(function(e){ e.preventDefault(); $(".coffee").hide().prev().hide(); });
+	});
+
 	$("#americano-btn").click(function(e){
 
 		e.preventDefault();
@@ -196,9 +201,55 @@ $.getJSON("./build/contracts/Coffeeshop.json", function(json) {
 
 	});
 
-	$("#panels").hide().show(0,function(){
-		$(this).find("#btn-hide-basics").click(function(e){ e.preventDefault(); $("#basics").hide().prev().hide(); });
-		$(this).find("#btn-hide-rest").click(function(e){ e.preventDefault(); $(".coffee").hide().prev().hide(); });
+	$("#latte-btn").click(function(e){
+
+		e.preventDefault();
+		var amount = $('[name="amount-latte"]').val();
+		amount = web3.utils.toWei(amount);
+		var from = me;
+		coffeeshop.methods.buyLatte().send({from: me, value: amount})
+			.on( 'transactionHash', function(h){
+				console.log(h);
+			} )
+			.on( 'receipt', function(r){
+				console.log(r);
+				var es = r.events;
+				var e = es.SoldItem.returnValues;
+				$("#latte-events").empty();
+				$("#latte-events").prepend(
+					$("<tr>").append(
+						$("<td colspan=6>")
+					),
+					$("<tr>").append(
+						$("<td>").append("Item:<br />"+e.item),
+						$("<td>").append("Buyer:<br />"+e.buyerAddress),
+						$("<td>").append("ShopAddress:<br />"+e.shopOwnerAddress),
+						$("<td>").append("<br />"),
+						$("<td>").append("<br />"),
+						$("<td>").append("<br />")
+					)
+				)
+				if (es.hasOwnProperty("RestGiven")) {
+					var e = es.RestGiven.returnValues;
+					$("#latte-events").prepend(
+						$("<tr>").append(
+							$("<td colspan=6>")
+						),
+						$("<tr>").append(
+							$("<td>").append("ReceiverAddress:<br />"+e.receiverAddress),
+							$("<td>").append("WeiAmount:<br />"+e.weiAmount),
+							$("<td>").append("Amount:<br />"+web3.utils.fromWei(e.weiAmount)),
+							$("<td>").append("<br />"),
+							$("<td>").append("<br />"),
+							$("<td>").append("<br />")
+						)
+					)
+				}
+				getGeneralBasicInfo().then(function(){ renderGeneralBasicInfo() });
+			} ).on( 'error', console.error );
+
+		return false;
+
 	});
 
 });
@@ -227,11 +278,21 @@ $.getJSON("./build/contracts/Coffeeshop.json", function(json) {
 	<tr>	<td><input name="amount-americano" value="2.00" /></td>	<td><!--<input name="val" value="1.00" />--></td>	</tr>
 	<tr>	<td colspan="2"><a href="#" id="americano-btn">Submit</a><small></small></td>						</tr>
 </table>
-
 <h4 id="events-title">Events Information</h4>
 <table id="americano-events">
 	<!-- TBD -->
+</table><hr />
+
+<h4 id="latte-title">Buy Latte</h4>
+<table id="latte" class="coffee" width="100%">
+	<tr>	<th>Amount of ETH to Send:</th>					<th>&nbsp;</th>										</tr>
+	<tr>	<td><input name="amount-latte" value="3.00" /></td>	<td><!--<input name="val" value="1.00" />--></td>	</tr>
+	<tr>	<td colspan="2"><a href="#" id="latte-btn">Submit</a><small></small></td>						</tr>
 </table>
+<h4 id="events-title">Events Information</h4>
+<table id="latte-events">
+	<!-- TBD -->
+</table><hr />
 
 
 </body>
