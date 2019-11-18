@@ -252,6 +252,57 @@ $.getJSON("./build/contracts/Coffeeshop.json", function(json) {
 
 	});
 
+	$("#cappuccino-btn").click(function(e){
+
+		e.preventDefault();
+		var amount = $('[name="amount-cappuccino"]').val();
+		amount = web3.utils.toWei(amount);
+		var from = me;
+		coffeeshop.methods.buyCappuccino().send({from: me, value: amount})
+			.on( 'transactionHash', function(h){
+				console.log(h);
+			} )
+			.on( 'receipt', function(r){
+				console.log(r);
+				var es = r.events;
+				var e = es.SoldItem.returnValues;
+				$("#cappuccino-events").empty();
+				$("#cappuccino-events").prepend(
+					$("<tr>").append(
+						$("<td colspan=6>")
+					),
+					$("<tr>").append(
+						$("<td>").append("Item:<br />"+e.item),
+						$("<td>").append("Buyer:<br />"+e.buyerAddress),
+						$("<td>").append("ShopAddress:<br />"+e.shopOwnerAddress),
+						$("<td>").append("<br />"),
+						$("<td>").append("<br />"),
+						$("<td>").append("<br />")
+					)
+				)
+				if (es.hasOwnProperty("RestGiven")) {
+					var e = es.RestGiven.returnValues;
+					$("#cappuccino-events").prepend(
+						$("<tr>").append(
+							$("<td colspan=6>")
+						),
+						$("<tr>").append(
+							$("<td>").append("ReceiverAddress:<br />"+e.receiverAddress),
+							$("<td>").append("WeiAmount:<br />"+e.weiAmount),
+							$("<td>").append("Amount:<br />"+web3.utils.fromWei(e.weiAmount)),
+							$("<td>").append("<br />"),
+							$("<td>").append("<br />"),
+							$("<td>").append("<br />")
+						)
+					)
+				}
+				getGeneralBasicInfo().then(function(){ renderGeneralBasicInfo() });
+			} ).on( 'error', console.error );
+
+		return false;
+
+	});
+
 });
 
 });
@@ -291,6 +342,17 @@ $.getJSON("./build/contracts/Coffeeshop.json", function(json) {
 </table>
 <h4 id="events-title">Events Information</h4>
 <table id="latte-events">
+	<!-- TBD -->
+</table><hr />
+
+<h4 id="cappuccino-title">Buy Cappuccino</h4>
+<table id="cappuccino" class="coffee" width="100%">
+	<tr>	<th>Amount of ETH to Send:</th>					<th>&nbsp;</th>										</tr>
+	<tr>	<td><input name="amount-cappuccino" value="5.00" /></td>	<td><!--<input name="val" value="1.00" />--></td>	</tr>
+	<tr>	<td colspan="2"><a href="#" id="cappuccino-btn">Submit</a><small></small></td>						</tr>
+</table>
+<h4 id="events-title">Events Information</h4>
+<table id="cappuccino-events">
 	<!-- TBD -->
 </table><hr />
 
